@@ -1,7 +1,7 @@
 # projeto_tcc
 
 Algoritm based on NicMsLesions, specific to pre-process images.
-Adapted to json, work whit ilimitaded number of datasets.
+Adapted to json, work whit unlimited number of datasets.
 
 The offer json take in count 5 public data images:
 
