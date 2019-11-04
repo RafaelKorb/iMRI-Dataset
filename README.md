@@ -13,11 +13,11 @@ SCLEROSIS:
 *MICCAI16
 
 HEALTHY
+KIRBY
 
-*KIRBY
------------------------------------------------------------------
-*Requierements to work systems
 
+Requirements to work systems
+----------------------------------------------------------------
 h5py
 MedPy==0.3.0
 scipy==1.0.0
@@ -31,26 +31,30 @@ FLAIR
 T1
 T2
 
------------------------------------------------------------------
+
 Directory
+-----------------------------------------------------------------
 
 Build the structure folders to in/out images
 
 DATABASE --> where you unzip the original datasets
 PRE --> where the pre-process images will be stored.
 
------------------------------------------------------------------
+
 Change_extensions
+-----------------------------------------------------------------
 
 Trasform the images into "nii.gz"
 
------------------------------------------------------------------
-Utils/preprocess
 
+Utils/preprocess
+-----------------------------------------------------------------
 arquive whit the preprocess functions
 
------------------------------------------------------------------
+
+
 Rafa_script (main script)
+-----------------------------------------------------------------
 
 Runs the pre-process on all images of json.
 
