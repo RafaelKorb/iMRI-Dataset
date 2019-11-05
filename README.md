@@ -65,11 +65,11 @@ Main_script (main script)
 
 Runs the pre-process on all images of json.
 
-Input require the local machine directory, like:
+Input require local machine directory, like:
 
 python rafa_script.py home/user/main_directory/
 
------------------------------------------------------------------
+
 
 
 Working
