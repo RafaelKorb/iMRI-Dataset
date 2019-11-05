@@ -45,17 +45,17 @@ def load_options(user_config):
     # options['ROI_name'] = user_config.get('database', 'ROI_name')
     options['debug'] = user_config.get('database', 'debug')
 
-    modalities = [str(options['flair_tags'][0]),
-                  options['t1_tags'][0],
-                  options['t2_tags'][0],
-                  options['mod4_tags'][0]]
-    names = ['FLAIR', 'T1', 'T2', 'MOD4']
+    # modalities = [str(options['flair_tags'][0]),
+    #               options['t1_tags'][0],
+    #               options['t2_tags'][0],
+    #               options['mod4_tags'][0]]
+    # names = ['FLAIR', 'T1', 'T2', 'MOD4']
 
-    options['modalities'] = [n for n, m in
-                             zip(names, modalities) if m != 'None']
-    options['image_tags'] = [m for m in modalities if m != 'None']
-    options['x_names'] = [n + '_brain.nii.gz' for n, m in
-                          zip(names, modalities) if m != 'None']
+    # options['modalities'] = [n for n, m in
+    #                          zip(names, modalities) if m != 'None']
+    #options['image_tags'] = [m for m in modalities if m != 'None']
+    # options['x_names'] = [n + '_brain.nii.gz' for n, m in
+    #                       zip(names, modalities) if m != 'None']
 
     options['out_name'] = 'out_seg.nii.gz'
 

@@ -1,4 +1,3 @@
-
 # ------------------------------------------------------------------------------------------------------------
 #   Preprocessing pipeline
 # ---------------------------------
@@ -19,6 +18,9 @@ from utils.load_options import load_options, print_options
 CURRENT_PATH = CURRENT_PATH = os.path.split(os.path.realpath(__file__))[0]
 sys.path.append(os.path.join(CURRENT_PATH, 'libs'))
 
+import json
+
+
 def get_config():
     """
     Get the configurations from file
@@ -30,12 +32,11 @@ def get_config():
     # read user's configuration file
     options = load_options(user_config)
     #options['tmp_folder'] = CURRENT_PATH + '/tmp'
-    options['tmp_folder'] = CURRENT_PATH + '/pre'
-    
-    if len(sys.argv) > 1:
-        options['datasets'] = sys.argv[1]
-    else:
-        print('How to use: python rafa_script.py /folder/to/images')
+    #options['tmp_folder'] = CURRENT_PATH +"/"+ data_dict['path_T1_pre']
+    # if len(sys.argv) > 1:
+    #     options['datasets'] = sys.argv[1] + "/" +data_dict["path_T1"]
+    # else:
+    #     print('How to use: python rafa_script.py /folder/to/images')
 
     # set paths taking into account the host OS
     host_os = platform.system()
@@ -55,29 +56,56 @@ def get_config():
 
 
 def preprocess(options):
-    scan_list = os.listdir(options['datasets'])
-    scan_list.sort()
+    
+    j=0
+    options['MNI_Template'] = os.path.normpath(os.path.join(os.getcwd(),'MNI_Template/icbm_avg_152_t1_tal_lin.nii.gz'))
+    with open('data.json', 'r') as f:
+    	data = json.load(f)
+        for i, data_dict in enumerate(data):
+            #path of pre-process images
+            
+            options['T1'] = data_dict['path_T1']
+            options['T2'] = data_dict['path_T2']
+            options['FLAIR'] = data_dict['path_FLAIR']
+            options['MASK'] = data_dict['path_lesion']
+            #get the final name image (original = path original, tmp_folder = pre-process folder)
+            options['modalities'] = (options['T1'].split("/")[-1] + "/" + options['T2'].split("/")[-1] + "/" + options['FLAIR'].split("/")[-1]).split("/")
+            options['modalities'].sort()
+            
+            options['original'] = data_dict['path_T1'].split("/")[:-1]
+            options['original'] = '/'.join([str(elem) for elem in options['original']]) 
+            
+            options['tmp_folder'] = CURRENT_PATH + '/pre/' + options['original'] + "/"
+            options['original'] = CURRENT_PATH + "/" + options['original'] + "/"
+            
+            options['pre_mask'] = data_dict['path_lesion'].split("/")[:-1]
+            options['pre_mask'] = '/'.join([str(elem) for elem in options['pre_mask']]) 
+            options['pre_mask'] = CURRENT_PATH + '/pre/' + options['pre_mask']
 
-    options['task'] = 'training'
-    options['datasets'] = os.path.normpath(options['datasets'])
+            options['mask'] = CURRENT_PATH + '/' + data_dict['path_lesion']
+            
+           
+            #path of personal computer
+            options['datasets'] = sys.argv[1]
 
-    options['MNI_Template'] = os.path.normpath(os.path.join(os.getcwd(),'MNI_Template/icbm_avg_152_t1_tal_lin.nii'))
-    for scan in scan_list:
+            total_time = time.time()
 
-        total_time = time.time()
+            # --------------------------------------------------
+            # move things to a tmp folder before starting
+            # --------------------------------------------------
 
-        # --------------------------------------------------
-        # move things to a tmp folder before starting
-        # --------------------------------------------------
-
-        options['tmp_scan'] = scan
-        current_folder = os.path.join(options['datasets'], scan)
-        options['tmp_folder'] = os.path.normpath(os.path.join(current_folder,
-                                                              'pre'))
-
-        # preprocess scan
-        preprocess_scan(current_folder, options)
+            #imagens             
+            #options['tmp_scan'] = options['tmp_folder']
+            options['tmp_scan'] = data_dict['path_T1_pre']
+            options['tmp_scan'] = options['tmp_scan'].split("/")[-3:-2]
+            #print(type(options['tmp_folder']))
+            
+            #pasta das imagens originais
+            current_folder = options['datasets'] + "/" + data_dict["path_T1"] 
+            # preprocess scan
+            preprocess_scan(current_folder, options)
 
 if __name__ == '__main__':
     preprocess(get_config())
     print("Done")
+

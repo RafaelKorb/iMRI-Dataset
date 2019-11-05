@@ -7,6 +7,7 @@ import time
 import platform
 import nibabel as nib
 import numpy as np
+import SimpleITK as sitk
 from medpy.filter.smoothing import anisotropic_diffusion as ans_dif
 
 
@@ -22,102 +23,7 @@ def get_mode(input_data):
 
     return mode
 
-def parse_input_masks(current_folder, options):
-    """
-    identify input image masks parsing image name labels
-    Check for input modalities. If lesiomask is not found, the mask
-    is ignored
 
-    """
-
-    # if options['task'] == 'training':
-    #     modalities = options['modalities'][:] + ['lesion']
-    #     image_tags = options['image_tags'][:] + options['roi_tags'][:]
-    # else:
-    #     modalities = options['modalities'][:]
-    #     image_tags = options['image_
-
-    modalities = options['modalities'][:]
-    image_tags = options['image_tags'][:]
-
-    if options['debug']:
-        print "> DEBUG:", "number of input sequences to find:", len(modalities)
-
-    scan = options['tmp_scan']
-    print "> PRE:", scan, "identifying input modalities"
-    found_modalities = 0
-
-    masks = [m for m in os.listdir(current_folder) if m.find('.nii') > 0]
-
-    for t, m in zip(image_tags, modalities):
-
-        # check first the input modalities
-        # find tag
-
-        found_mod = [mask.find(t) if mask.find(t) >= 0
-                     else np.Inf for mask in masks]
-
-        if found_mod[np.argmin(found_mod)] is not np.Inf:
-            found_modalities += 1
-            index = np.argmin(found_mod)
-            # generate a new output image modality
-            # check for extra dimensions
-            input_path = os.path.join(current_folder, masks[index])
-            input_sequence = nib.load(input_path)
-            input_image = np.squeeze(input_sequence.get_data())
-            output_sequence = nib.Nifti1Image(input_image,
-                                              affine=input_sequence.affine)
-            output_sequence.to_filename(
-                os.path.join(options['tmp_folder'], m + '.nii.gz'))
-
-            if options['debug']:
-                print "    --> ", masks[index], "as", m, "image"
-            masks.remove(masks[index])
-
-    # check that the minimum number of modalities are used
-    if found_modalities < len(modalities):
-        print "> ERROR:", scan, \
-            "does not contain all valid input modalities"
-        sys.stdout.flush()
-        time.sleep(1)
-        os.kill(os.getpid(), signal.SIGTERM)
-
-    # check if lesion mask exists, and if not, save an empty mask
-    # with same shape as T1-w
-
-    t = options['mask_tags'][0]
-    m = 'lesion'
-
-    masks = [mask for mask in os.listdir(current_folder) if mask.find('.nii') > 0]
-    found_mod = [mask.find(t) if mask.find(t) >= 0
-                     else np.Inf for mask in masks]
-
-    if found_mod[np.argmin(found_mod)] is not np.Inf:
-        index = np.argmin(found_mod)
-        # generate a new output image modality
-        # check for extra dimensions
-        input_path = os.path.join(current_folder, masks[index])
-        input_sequence = nib.load(input_path)
-        input_image = np.squeeze(input_sequence.get_data())
-        output_sequence = nib.Nifti1Image(input_image,
-                                          affine=input_sequence.affine)
-        output_sequence.to_filename(
-            os.path.join(options['tmp_folder'], m + '.nii.gz'))
-
-        if options['debug']:
-            print "    --> ", masks[index], "as", m, "image"
-            masks.remove(masks[index])
-    else:
-        #ref_scan = nib.load(os.path.join(current_folder, 'tmp', 'T1.nii.gz'))
-        ref_scan = nib.load(os.path.join(current_folder, 'data', 'T1.nii.gz'))
-        input_image = np.zeros_like(ref_scan.get_data())
-        output_sequence = nib.Nifti1Image(input_image,
-                                          affine=ref_scan.affine)
-        output_sequence.to_filename(
-            os.path.join(options['tmp_folder'], m + '.nii.gz'))
-        if options['debug']:
-            print "    -->  Empty mask as", m, "image"
-            masks.remove(masks[index])
 
 def register_masks(options):
     """
@@ -127,7 +33,7 @@ def register_masks(options):
     """
 
     scan = options['tmp_scan']
-    # rigid registration
+   # rigid registration
     os_host = platform.system()
     if os_host == 'Linux':
         reg_exe = 'reg_aladin'
@@ -135,47 +41,54 @@ def register_masks(options):
         print "> ERROR: The OS system", os_host, "is not currently supported."
 
     reg_aladin_path = os.path.join(options['niftyreg_path'], reg_exe)
+    
 
     for mod in options['modalities']:
-        if mod == 'T1':
+        if mod == options['modalities'][1]:
             continue
-
+        
         try:
+            if mod == options['modalities'][0]:
+                text="FLAIR"
+            else:
+                text="T2"
+
+            maxi='5'
             print "> PRE:", scan, "registering",  mod, " --> T1 space"
             subprocess.check_output([reg_aladin_path, '-ref',
-                                     os.path.join(options['tmp_folder'], 'T1.nii.gz'),
-                                     '-flo', os.path.join(options['tmp_folder'], mod + '.nii.gz'),
-                                     '-aff', os.path.join(options['tmp_folder'], mod + '_transf.txt'),
-                                     '-res', os.path.join(options['tmp_folder'], 'r' + mod + '.nii.gz')])
+                                    options['T1'],
+                                     '-rigOnly',
+                                     '-noSym', 
+                                     '-flo', options['original'] + mod,
+                                     '-aff', options['tmp_folder'] + text + '_transf.txt',
+                                     '-res', options['tmp_folder'] + 'r' + mod])
         except:
-            print "> ERROR:", scan, "registering masks on  ", mod, "quiting program."
+            print "> ERROR:", scan, "registering masks on ", mod, "quiting program."
             time.sleep(1)
             os.kill(os.getpid(), signal.SIGTERM)
-
+        
     # if training, the lesion mask is also registered through the T1 space.
     # Assuming that the refefence lesion space was FLAIR.
-    if options['task'] == 'training':
-        # rigid registration
-        os_host = platform.system()
-        if os_host == 'Windows':
-            reg_exe = 'reg_resample.exe'
-        elif os_host == 'Linux':
-            reg_exe = 'reg_resample'
-        else:
-            print "> ERROR: The OS system", os_host, "is not currently supported."
+    # rigid registration
+    os_host = platform.system()
+    if os_host == 'Linux':
+        reg_exe = 'reg_resample'
+    else:
+        print "> ERROR: The OS system", os_host, "is not currently supported."
 
-        reg_resample_path = os.path.join(options['niftyreg_path'], reg_exe)
-
+    reg_resample_path = os.path.join(options['niftyreg_path'], reg_exe)
+    if options['MASK']:
+        
         try:
             print "> PRE:", scan, "resampling the lesion mask --> T1 space"
             subprocess.check_output([reg_resample_path, '-ref',
-                                     os.path.join(options['tmp_folder'], 'T1.nii.gz'),
-                                     '-flo', os.path.join(options['tmp_folder'], 'lesion'),
-                                     '-trans', os.path.join(options['tmp_folder'], 'FLAIR_transf.txt'),
-                                     '-res', os.path.join(options['tmp_folder'], 'lesion.nii.gz'),
+                                     options['T1'],
+                                     '-flo', options['mask'],
+                                     '-trans', options['tmp_folder'] + 'FLAIR_transf.txt',
+                                     '-res', options['pre_mask'] + 'lesion.nii.gz',
                                      '-inter', '0'])
         except:
-            print "> ERROR:", scan, "registering masks on  ", mod, "quiting program."
+            print "> ERROR:", scan, "registering masks on ", mod, "quiting program."
             time.sleep(1)
             os.kill(os.getpid(), signal.SIGTERM)
 
@@ -184,8 +97,7 @@ def register_MNI(options):
     """
     Registering to MNI_template
     """
-
-    command01='reg_aladin -ref '+options['MNI_Template']+' -flo '+options['tmp_folder']+'/T1.nii.gz -aff '+options['tmp_folder']+'/MNI_trafo_Affine.txt -res '+options['tmp_folder']+'/rT1.nii.gz'
+    command01='reg_aladin -ref '+options['MNI_Template']+' -flo '+options['T1'] +' -aff '+options['tmp_folder']+'MNI_trafo_Affine.txt -res '+options['tmp_folder']+'r' + options['modalities'][1]
     print command01+'\n'
     if os.system(command01):
         raise RuntimeError('program {} failed!'.format(command01))
@@ -193,7 +105,7 @@ def register_MNI(options):
     print 'FIM 01 - Corregistro afim T1 para Template e geracao da matriz transformacao\n'
 
 
-    command02='reg_resample -ref '+options['MNI_Template']+' -flo '+options['tmp_folder']+'/rFLAIR.nii.gz -res '+options['tmp_folder']+'/rrFLAIR.nii.gz -aff '+options['tmp_folder']+'/MNI_trafo_Affine.txt'
+    command02='reg_resample -ref '+options['MNI_Template']+' -flo '+options['tmp_folder']+'r'+ options['modalities'][0] +' -res '+options['tmp_folder']+'rr' +options['modalities'][0] +' -aff '+options['tmp_folder']+'MNI_trafo_Affine.txt'
     print command02+'\n'
     if os.system(command02):
         raise RuntimeError('program {} failed!'.format(command02))
@@ -201,18 +113,22 @@ def register_MNI(options):
     print 'FIM 02 - Aplicacao da matriz transformacao na imagem flair\n'
 
 
-    command03='reg_resample -ref '+options['MNI_Template']+' -flo '+options['tmp_folder']+'/rT2.nii.gz -res '+options['tmp_folder']+'/rrT2.nii.gz -aff '+options['tmp_folder']+'/MNI_trafo_Affine.txt'
+    command03='reg_resample -ref '+options['MNI_Template']+' -flo '+options['tmp_folder']+'r'+ options['modalities'][2] +' -res '+options['tmp_folder']+'rr' +options['modalities'][2] +' -aff '+options['tmp_folder']+'MNI_trafo_Affine.txt'
     print command03+'\n'
     if os.system(command03):
         raise RuntimeError('program {} failed!'.format(command03))
-    print 'FIM 03 - Aplicacao da matriz transformacao na imagem T2\n'
 
-    command04='reg_resample -ref '+options['MNI_Template']+' -flo '+options['tmp_folder']+'/lesion.nii.gz -res '+options['tmp_folder']+'/rrlesion.nii.gz -aff '+options['tmp_folder']+'/MNI_trafo_Affine.txt'
-    print command04+'\n'
-    if os.system(command04):
-        raise RuntimeError('program {} failed!'.format(command04))
+    print 'FIM 02 - Aplicacao da matriz transformacao na imagem flair\n'
 
-    print 'FIM 04 - Aplicacao da matriz transformacao na mascara\n'
+    if options['MASK']:
+        command04='reg_resample -ref '+options['MNI_Template']+' -flo '+options['pre_mask']+'lesion.nii.gz -res '+options['pre_mask']+'rrlesion.nii.gz -aff '+options['tmp_folder']+'MNI_trafo_Affine.txt'
+        print command04+'\n'
+        if os.system(command04):
+            raise RuntimeError('program {} failed!'.format(command04))
+
+        print 'FIM 04 - Aplicacao da matriz transformacao na mascara\n'
+    
+
 
 def denoise_masks(options):
     """
@@ -220,10 +136,9 @@ def denoise_masks(options):
     Using anisotropic Diffusion (Perona and Malik)
 
     """
-
     for mod in options['modalities']:
 
-        current_image ='r'+ mod + '.nii.gz' if mod == 'T1' else 'rr' + mod + '.nii.gz'
+        current_image ='r'+ mod if mod == options['modalities'][1] else 'rr' + mod
 
         tmp_scan = nib.load(os.path.join(options['tmp_folder'],current_image))
 
@@ -232,7 +147,6 @@ def denoise_masks(options):
         tmp_scan.to_filename(os.path.join(options['tmp_folder'],'d' + current_image))
         if options['debug']:
             print "> DEBUG: Denoising ", current_image
-
 
 def skull_strip(options):
     """
@@ -245,8 +159,8 @@ def skull_strip(options):
     """
 
     scan = options['tmp_scan']
-    t1_im = os.path.join(options['tmp_folder'], 'drT1.nii.gz')
-    t1_st_im = os.path.join(options['tmp_folder'], 'T1_brain.nii.gz')
+    t1_im = options['tmp_folder'] +'dr'+ options['modalities'][1]
+    t1_st_im = options['tmp_folder'] + options['modalities'][1] + '_brain.nii.gz'
 
     try:
         print "> PRE:", scan, "skull_stripping the T1 modality"
@@ -261,23 +175,41 @@ def skull_strip(options):
     brainmask = nib.load(t1_st_im).get_data() > 1
     for mod in options['modalities']:
 
-        if mod == 'T1':
-            continue
-
-        # apply the same mask to the rest of modalities to reduce
-        # computational time
+        if mod == options['modalities'][1]:
+            current_mask = options['tmp_folder'] + 'dr' + mod
+        else:
+           current_mask = options['tmp_folder'] + 'drr' + mod
+            # apply the same mask to the rest of modalities to reduce
+            # computational time
 
         print '> PRE: ', scan, 'Applying skull mask to ', mod, 'image'
-        current_mask = os.path.join(options['tmp_folder'],
-                                    'drr' + mod + '.nii.gz')
-        current_st_mask = os.path.join(options['tmp_folder'],
-                                       mod + '_brain.nii.gz')
+        current_st_mask = options['tmp_folder']+'brain'+ mod
 
         mask = nib.load(current_mask)
         mask_nii = mask.get_data()
         mask_nii[brainmask == 0] = 0
         mask.get_data()[:] = mask_nii
         mask.to_filename(current_st_mask)
+
+
+
+def N4(options):
+    for mod in options['modalities']:
+        print("N4 bias correction runs on" + mod)
+        A = (options['tmp_folder']+ 'brain' + mod)
+        A = A.encode("utf-8")
+       
+        inputImage = sitk.ReadImage(A)
+        inputImage = sitk.Cast(inputImage,sitk.sitkFloat32)
+        corrector = sitk.N4BiasFieldCorrectionImageFilter();
+
+
+
+        output = corrector.Execute(inputImage)
+        nome = options['tmp_folder']+'N4_brain' + mod
+        nome = nome.encode("utf-8")
+        sitk.WriteImage(output, nome)
+        print("Finished N4 Bias Field Correction.....")
 
 
 def preprocess_scan(current_folder, options):
@@ -291,38 +223,28 @@ def preprocess_scan(current_folder, options):
     preprocess_time = time.time()
 
     scan = options['tmp_scan']
-    try:
-        # os.rmdir(os.path.join(current_folder,  'tmp'))
-        os.mkdir(options['tmp_folder'])     
-    except:
-        if os.path.exists(options['tmp_folder']) is False:
-            print "> ERROR:",  scan, "I can not create tmp folder for", current_folder, "Quiting program."
-
-        else:
-            pass
-
+   
     # --------------------------------------------------
     # find modalities and move everything to a tmp folder
     # --------------------------------------------------
     id_time = time.time()
-    parse_input_masks(current_folder, options)
     print "> INFO:", scan, "elapsed time: ", round(time.time() - id_time), "sec"
-
+ 
     # --------------------------------------------------
     # register modalities
     # --------------------------------------------------
     if options['register_modalities'] is True:
         reg_time = time.time()
-        #register_masks(options)
+        register_masks(options)
         print "> INFO:", scan, "elapsed time: ", round(time.time() - reg_time), "sec"
     else:
         try:
             for mod in options['modalities']:
                 if mod == 'T1':
                     continue
-                out_scan = mod + '.nii.gz' if mod == 'T1' else 'r' + mod + '.nii.gz'
+                out_scan = mod  if mod == 'T1' else 'r' + mod 
                 shutil.copy2(os.path.join(options['tmp_folder'],
-                                         mod + '.nii.gz'),
+                                         mod),
                              os.path.join(options['tmp_folder'],
                                          out_scan))
         except:
@@ -330,7 +252,7 @@ def preprocess_scan(current_folder, options):
 
             time.sleep(1)
             os.kill(os.getpid(), signal.SIGTERM)
-
+ 
     # --------------------------------------------------
     # register template
     # --------------------------------------------------
@@ -343,21 +265,23 @@ def preprocess_scan(current_folder, options):
         denoise_masks(options)
         print "> INFO: denoising", scan, "elapsed time: ", round(time.time() - denoise_time), "sec"
     else:
-        try:
-            for mod in options['modalities']:
-                input_scan = mod + '.nii.gz' if mod == 'T1' else 'r' + mod + '.nii.gz'
-                shutil.copy(os.path.join(options['tmp_folder'],
-                                         input_scan),
-                            os.path.join(options['tmp_folder'],
-                                         'd' + input_scan))
-        except:
+        # try:
+        #     for mod in options['modalities']:
+        #         input_scan = mod + '.nii.gz' if mod == 'T1' else 'r' + mod + '.nii.gz'
+        #         shutil.copy(os.path.join(options['tmp_folder'],
+        #                                  input_scan),
+        #                     os.path.join(options['tmp_folder'],
+        #                                  'd' + input_scan))
+        # except:
             print "> ERROR denoising:", scan, "I can not rename input modalities as tmp files. Quiting program."
             time.sleep(1)
             os.kill(os.getpid(), signal.SIGTERM)
 
-    # --------------------------------------------------
-    # skull strip
-    # --------------------------------------------------
+
+    #--------------------------------------------------
+    #skull strip
+    #--------------------------------------------------
+   
 
     if options['skull_stripping'] is True:
         sk_time = time.time()
@@ -366,7 +290,7 @@ def preprocess_scan(current_folder, options):
     else:
         try:
             for mod in options['modalities']:
-                input_scan = 'd' + mod + '.nii.gz' if mod == 'T1' else 'dr' + mod + '.nii.gz'
+                input_scan = 'd' + mod  if mod == options['modalities'][1] else 'dr' + mod 
                 shutil.copy(os.path.join(options['tmp_folder'],
                                          input_scan),
                             os.path.join(options['tmp_folder'],
@@ -378,3 +302,10 @@ def preprocess_scan(current_folder, options):
 
     if options['skull_stripping'] is True and options['register_modalities'] is True:
         print "> INFO:", scan, "total preprocessing time: ", round(time.time() - preprocess_time)
+
+
+
+    #--------------------------------------------------
+    #N4 intensity inhomogeneity correction (Bias Field)
+    #--------------------------------------------------
+    N4(options)
