@@ -13,10 +13,10 @@ SCLEROSIS:
 *MICCAI16
 
 HEALTHY  
-KIRBY
+*KIRBY
 
 
-Requirements to work systems
+Requirements
 ----------------------------------------------------------------
 h5py  
 MedPy==0.3.0  
@@ -60,7 +60,7 @@ Bias field (Intensity inhomogeneity (IIH) or intensity non-uniformity)
 
 
 
-Rafa_script (main script)
+Main_script (main script)
 -----------------------------------------------------------------
 
 Runs the pre-process on all images of json.
@@ -72,8 +72,17 @@ python rafa_script.py home/user/main_directory/
 -----------------------------------------------------------------
 
 
+Working
+-----------------------------------------------------------------
+1- Execute build_diretory.py
 
+2- Download images and unzip inside their respective folders
 
+3- Execute change_extensions.py
+
+4- Execute create_json.py
+
+5-Execute Main_script.py
 
 
 
