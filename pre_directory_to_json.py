@@ -9,11 +9,15 @@ import json
 
 def pre_json():
     with open('data.json', 'r') as f:
-        data = json.load(f)
-        #buildin json whit folder 'pre'
-        for i, data_dict in enumerate(data):
-            #data_dict["path_T1_pre"] = data_dict['path_T1'].split("/")[:-1]
-            #data_dict['path_T1_pre'] = '/'.join([str(elem) for elem in data_dict['path_T1_pre']]) 
+    	data = json.load(f)
+    	training = data[0]
+    	test = data[1]
+    	test2 = test["test"]
+    	training2 = training["training"]
+    	
+        training2.extend(test2)
+        
+    	for i, data_dict in enumerate(training2):
             
             data_dict["path_T1_pre"] = "pre/"+data_dict["path_T1"]
             data_dict["path_FLAIR_pre"] = "pre/"+data_dict["path_FLAIR"]

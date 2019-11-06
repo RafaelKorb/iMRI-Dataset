@@ -1,32 +1,60 @@
+import os
+import sys
 import pandas as pd
+import random
 import numpy as np
 from sklearn.model_selection import train_test_split
+import json
 
-dataframe = pd.read_json('data.json')
+with open('data.json', 'r') as f:
+    data = json.load(f)
+    training = data[0]
+    test = data[1]
+    test2 = test["test"]
+    training2 = training["training"]
+    
+    full_data=[]
+    full_data.extend(training2)
+    full_data.extend(test2)
+    
+    final=[]
 
-#only_females = dataframe.loc[dataframe['sex']=='F']
-#only_age_major_than_30 = dataframe.loc[dataframe['age'] >='30']
+    
 
-#select the patients that you want
-normals = dataframe.loc[dataframe['MS']=='False']
-ms = dataframe.loc[dataframe['MS']=='True']
+    #Search in all values 
+    # for i, data_dict in enumerate(full_data):
+    #     if data_dict['MS'] == 'True':
+    #         len=len+1
+    #         #print(data_dict['path_T1'])
+    #         normals = data_dict['path_T1']
 
 
-#construct subset dataframe with random 30 normals and random 30 MS
-dataframe2=pd.DataFrame(columns=dataframe.columns)
-chosen_idx = np.random.choice(len(normals), replace=False, size=30) #rand numbers
-#dataframe2 = dataframe2.append(normals.iloc[chosen_idx])
-#chosen_idx = np.random.choice(len(ms), replace=False, size=30) #rand numbers
-dataframe2 = dataframe2.append(ms.iloc[chosen_idx])
+    # print(len)
+########################################################
 
-#separate in test train
-train, test = train_test_split(dataframe2, test_size=0.25)
+    #Search in training values
+    for i, data_dict in enumerate(training2):
+        if data_dict['age'] == '36':
+            #print(data_dict['path_T1'])
+            final.append(data_dict['path_T1'])
+            
+    #size = len(final)
+    #print(size)
+########################################################
+
+    # Search in test values
+    # for i, data_dict in enumerate(test2):
+    #     if data_dict['age'] == '36':
+    #         print(data_dict['path_T1'])
+    # print(len)
+
+
+
+train, test = train_test_split(final, test_size=0.25)
 
 print 'Train:',len(train)
 print 'Test:',len(test) 
 print "Test size is 25 per cent and Train is 75 per cent, as defined."
 
 #print first row
-print dataframe2.iloc[0] 
-
-print 'path_T1 of first row:',dataframe2['path_T1_pre'].iloc[0] 
+print(train[0])

@@ -1,7 +1,7 @@
 import wget
 import os , sys
 import json
-#from pre_directory_to_json import pre_json
+from pre_directory_to_json import pre_json
 
 DATABASE = [
 {"training":[
@@ -1311,4 +1311,4 @@ with open('data.json', 'w') as outfile:
     json.dump(DATABASE, outfile)
 
 
-# pre_json()
+pre_json()

@@ -42,7 +42,7 @@ liubliana = [
 with open('data.json', 'w') as outfile:
     json.dump(data, outfile)
 
-    path = ["DATABASE/Sclerosi/liubliana", 'DATABASE/Sclerosi/ISBI', 'DATABASE/Sclerosi/MICCAI08', 'DATABASE/Sclerosi/MICCAI16'] 
+    path = ["DATABASE/Sclerosis/liubliana", 'DATABASE/Sclerosis/ISBI', 'DATABASE/Sclerosis/MICCAI08', 'DATABASE/Sclerosis/MICCAI16'] 
 
     exists = os.path.exists("DATABASE")
     if exists == True:

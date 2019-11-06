@@ -11,19 +11,6 @@ import SimpleITK as sitk
 from medpy.filter.smoothing import anisotropic_diffusion as ans_dif
 
 
-def get_mode(input_data):
-    """
-    Get the stastical mode
-    """
-    (_, idx, counts) = np.unique(input_data,
-                                 return_index=True,
-                                 return_counts=True)
-    index = idx[np.argmax(counts)]
-    mode = input_data[index]
-
-    return mode
-
-
 
 def register_masks(options):
     """
@@ -58,7 +45,6 @@ def register_masks(options):
             subprocess.check_output([reg_aladin_path, '-ref',
                                     options['T1'],
                                      '-rigOnly',
-                                     '-noSym', 
                                      '-flo', options['original'] + mod,
                                      '-aff', options['tmp_folder'] + text + '_transf.txt',
                                      '-res', options['tmp_folder'] + 'r' + mod])
@@ -67,9 +53,10 @@ def register_masks(options):
             time.sleep(1)
             os.kill(os.getpid(), signal.SIGTERM)
         
-    # if training, the lesion mask is also registered through the T1 space.
-    # Assuming that the refefence lesion space was FLAIR.
-    # rigid registration
+  
+    #lesion mask is also registered through the T1 space.
+    #Assuming that the reference lesion space was FLAIR.
+    
     os_host = platform.system()
     if os_host == 'Linux':
         reg_exe = 'reg_resample'
@@ -132,9 +119,7 @@ def register_MNI(options):
 
 def denoise_masks(options):
     """
-    Denoise input masks to reduce noise.
-    Using anisotropic Diffusion (Perona and Malik)
-
+    Anisotropic Diffusion (Perona and Malik)
     """
     for mod in options['modalities']:
 
@@ -145,17 +130,12 @@ def denoise_masks(options):
         tmp_scan.get_data()[:] = ans_dif(tmp_scan.get_data(),niter=options['denoise_iter'])
 
         tmp_scan.to_filename(os.path.join(options['tmp_folder'],'d' + current_image))
-        if options['debug']:
-            print "> DEBUG: Denoising ", current_image
+   
 
 def skull_strip(options):
     """
     External skull stripping using ROBEX: Run Robex and save skull
     stripped masks
-    input:
-       - options: contains the path to input images
-    output:
-    - None
     """
 
     scan = options['tmp_scan']
@@ -195,7 +175,7 @@ def skull_strip(options):
 
 def N4(options):
     for mod in options['modalities']:
-        print("N4 bias correction runs on" + mod)
+        print("N4 bias correction runing on"+'\n'+mod)
         A = (options['tmp_folder']+ 'brain' + mod)
         A = A.encode("utf-8")
        
@@ -214,10 +194,7 @@ def N4(options):
 
 def preprocess_scan(current_folder, options):
     """
-    Preprocess scan taking into account user options
-    - input:
-      current_folder = path to the current image
-      options: options
+    Function to call preprocess methods.
 
     """
     preprocess_time = time.time()
@@ -225,87 +202,73 @@ def preprocess_scan(current_folder, options):
     scan = options['tmp_scan']
    
     # --------------------------------------------------
-    # find modalities and move everything to a tmp folder
-    # --------------------------------------------------
-    id_time = time.time()
-    print "> INFO:", scan, "elapsed time: ", round(time.time() - id_time), "sec"
- 
-    # --------------------------------------------------
     # register modalities
     # --------------------------------------------------
-    if options['register_modalities'] is True:
+    try:
         reg_time = time.time()
         register_masks(options)
         print "> INFO:", scan, "elapsed time: ", round(time.time() - reg_time), "sec"
-    else:
-        try:
-            for mod in options['modalities']:
-                if mod == 'T1':
-                    continue
-                out_scan = mod  if mod == 'T1' else 'r' + mod 
-                shutil.copy2(os.path.join(options['tmp_folder'],
-                                         mod),
-                             os.path.join(options['tmp_folder'],
-                                         out_scan))
-        except:
-            print "> ERROR: registration ", scan, "I can not rename input modalities as tmp files. Quiting program."
-
-            time.sleep(1)
-            os.kill(os.getpid(), signal.SIGTERM)
+    
+    except:
+        print "> ERROR: registration ", scan, "I can not rename input modalities as tmp files. Quiting program."
+        time.sleep(1)
+        os.kill(os.getpid(), signal.SIGTERM)
  
+    
+
     # --------------------------------------------------
     # register template
     # --------------------------------------------------
-    register_MNI(options)
+    try:
+        MNI_time = time.time()
+        register_MNI(options)
+        print "> INFO: Register MNI", scan, "elapsed time: ", round(time.time() - MNI_time), "sec"
+
+    except:
+        print "> ERROR Register MNI:", scan, "I can not rename input modalities as tmp files. Quiting program."
+        time.sleep(1)
+        os.kill(os.getpid(), signal.SIGTERM)
+
+    
     # --------------------------------------------------
     # noise filtering
     # --------------------------------------------------
-    if options['denoise'] is True:
+    try:
         denoise_time = time.time()
         denoise_masks(options)
         print "> INFO: denoising", scan, "elapsed time: ", round(time.time() - denoise_time), "sec"
-    else:
-        # try:
-        #     for mod in options['modalities']:
-        #         input_scan = mod + '.nii.gz' if mod == 'T1' else 'r' + mod + '.nii.gz'
-        #         shutil.copy(os.path.join(options['tmp_folder'],
-        #                                  input_scan),
-        #                     os.path.join(options['tmp_folder'],
-        #                                  'd' + input_scan))
-        # except:
-            print "> ERROR denoising:", scan, "I can not rename input modalities as tmp files. Quiting program."
-            time.sleep(1)
-            os.kill(os.getpid(), signal.SIGTERM)
+    
+    except:
+        print "> ERROR denoising:", scan, "I can not rename input modalities as tmp files. Quiting program."
+        time.sleep(1)
+        os.kill(os.getpid(), signal.SIGTERM)
 
-
+    
     #--------------------------------------------------
     #skull strip
     #--------------------------------------------------
-   
-
-    if options['skull_stripping'] is True:
+    try:
         sk_time = time.time()
         skull_strip(options)
         print "> INFO:", scan, "elapsed time: ", round(time.time() - sk_time), "sec"
-    else:
-        try:
-            for mod in options['modalities']:
-                input_scan = 'd' + mod  if mod == options['modalities'][1] else 'dr' + mod 
-                shutil.copy(os.path.join(options['tmp_folder'],
-                                         input_scan),
-                            os.path.join(options['tmp_folder'],
-                                         mod + '_brain.nii.gz'))
-        except:
-            print "> ERROR: Skull-stripping", scan, "I can not rename input modalities as tmp files. Quiting program."
-            time.sleep(1)
-            os.kill(os.getpid(), signal.SIGTERM)
-
-    if options['skull_stripping'] is True and options['register_modalities'] is True:
-        print "> INFO:", scan, "total preprocessing time: ", round(time.time() - preprocess_time)
-
-
+    
+    except:
+        print "> ERROR: Skull-stripping", scan, "I can not rename input modalities as tmp files. Quiting program."
+        time.sleep(1)
+        os.kill(os.getpid(), signal.SIGTERM)
+    
 
     #--------------------------------------------------
     #N4 intensity inhomogeneity correction (Bias Field)
     #--------------------------------------------------
-    N4(options)
+    try:
+        N4_time = time.time()
+        N4(options)
+        print "> INFO:", scan, "elapsed time: ", round(time.time() - N4_time), "sec"
+    except:
+        print "> ERROR: N4", scan, "I can not rename input modalities as tmp files. Quiting program."
+        time.sleep(1)
+        os.kill(os.getpid(), signal.SIGTERM)
+
+    print "> INFO:", scan, "total preprocessing time: ", round(time.time() - preprocess_time)
+    
