@@ -77,7 +77,15 @@ Input require local machine directory, like:
 python rafa_script.py home/user/main_directory/
 
 
+JSON
+-----------------------------------------------------------------
+Create Json build Data.json, where is use to pre-processing images
 
+Manipulating_data build our_json, whit the division test/training (75-25)
+
+our_json is build whitout using test of original data-sets in our train.
+
+The divison in test/train considerate 50-50 healthy and MS patients
 
 Working
 -----------------------------------------------------------------
@@ -91,7 +99,7 @@ Working
 
 5-Execute Main_script.py
 
-
+6-Execute manipulanting_data.py 
 
 
 
