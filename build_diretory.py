@@ -6,13 +6,21 @@ import json
 #buildin folder to pre-process images
 with open('data.json', 'r') as f:
     data = json.load(f)
+    full_data = data[0]
+
+    training2 = full_data['training']
+    test2=full_data['test']
+
+    full_data=[]
+    full_data.extend(training2)
+    full_data.extend(test2)
     path=('pre')
      
     if os.path.isdir(path):
             print("directory already exists, delete folder pre to build new one") 
 
     else:        
-        for i, data_dict in enumerate(data):
+        for i, data_dict in enumerate(full_data):
             data_dict["path_T1_pre"] = data_dict['path_T1_pre'].split("/")[:-1]
             data_dict['path_T1_pre'] = '/'.join([str(elem) for elem in data_dict['path_T1_pre']])
              
