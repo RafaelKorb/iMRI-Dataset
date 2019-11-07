@@ -37,15 +37,17 @@ def preprocess():
 
     #get the paths of images from json
     with open('data.json', 'r') as f:
-    	data = json.load(f)
-    	training = data[0]
-    	test = data[1]
-    	test2 = test["test"]
-    	training2 = training["training"]
-    	
-        training2.extend(test2)
+        data = json.load(f)
+        full_data = data[0]
+
+        training2 = full_data['training']
+        test2=full_data['test']
+
+        full_data=[]
+        full_data.extend(training2)
+        full_data.extend(test2)
         
-    	for i, data_dict in enumerate(training2):
+    	for i, data_dict in enumerate(full_data):
           
             options['T1'] = data_dict['path_T1']
             options['T2'] = data_dict['path_T2']
@@ -68,7 +70,7 @@ def preprocess():
 
             options['mask'] = CURRENT_PATH + '/' + data_dict['path_lesion']
             
-           
+
             #path of personal computer
             options['datasets'] = sys.argv[1]
             
