@@ -13,36 +13,47 @@ The offer json take in count 5 public data images:
 
 SCLEROSIS:
 
+------------------------------
 *ISBI 
+
 link to download: https://smart-stats-tools.org/lesion-challenge
 
 make account on site and go to "lession challange" - sclerosis - data
 
 
+------------------------------
 *LYUBLYANA  
 link to download: http://lit.fe.uni-lj.si/tools.php?lang=eng
 
 
+Take all links from "3D MR image database of Multiple Sclerosis patients with white matter lesion segmentations"
+
+------------------------------
 *MICCAI08  
 link to download: https://www.nitrc.org/frs/?group_id=745
 
 
 download all url's from "Segmentation Challenge Data"
 
+------------------------------
 *MICCAI16
+
 Register on site here: https://portal.fli-iam.irisa.fr/msseg-challenge/overview?p_p_id=registration_WAR_fliiamportlet&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_pos=1&p_p_col_count=3&_registration_WAR_fliiamportlet_mvcPath=%2Fhtml%2Fregistration%2Fregistration.jsp
 
 
 link to download: https://portal.fli-iam.irisa.fr/msseg-challenge/data
 
+------------------------------
 HEALTHY  
 
+------------------------------
 *KIRBY
 link to download: https://www.nitrc.org/frs/?group_id=313
 
 
 Select all links from "Kirby 21 (2009)"
 
+------------------------------
 *OASIS
 Rigister on site here: https://central.xnat.org/app/template/Register.vm#!
 
@@ -51,9 +62,10 @@ link to download: https://central.xnat.org/app/template/XDATScreen_report_xnat_p
 
 acess "donwload images" in box "actions"
 
-select de boxes like in image:
+On "2: select image data" select the boxes NIFTI, FLAIR, T1w and T2w 
 
-![Screenshot](https://bitbucket.org/RafaelKorb/projeto_tcc/src/working_version/oasis_download.png)
+On "3: download data" select "option 2: ZIP download" then submit
+
 
 
 Requirements
