@@ -45,7 +45,7 @@ acess "donwload images" in box "actions"
 
 select de boxes like in image:
 
-![alt text] (https://bitbucket.org/RafaelKorb/projeto_tcc/src/working_version/oasis_download.png)
+![alt text](https://bitbucket.org/RafaelKorb/projeto_tcc/src/working_version/oasis_download.png)
 
 
 Requirements
