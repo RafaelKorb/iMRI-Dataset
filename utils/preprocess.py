@@ -11,10 +11,12 @@ import SimpleITK as sitk
 from medpy.filter.smoothing import anisotropic_diffusion as ans_dif
 
 
+''' Attemp that are functions based on the project NicMSlesion'''
+
 
 def register_masks(options):
     """
-    - to doc
+    - function based on NicMSlesion
     - moving all images to the T1 space
 
     """
@@ -119,6 +121,7 @@ def register_MNI(options):
 
 def denoise_masks(options):
     """
+    Function based on NicMSlesion
     Anisotropic Diffusion (Perona and Malik)
     """
     for mod in options['modalities']:
@@ -132,8 +135,10 @@ def denoise_masks(options):
         tmp_scan.to_filename(os.path.join(options['tmp_folder'],'d' + current_image))
    
 
-def skull_strip(options):
+
+def skull_strip(options): 
     """
+    Function based on NicMSlesion
     External skull stripping using ROBEX: Run Robex and save skull
     stripped masks
     """
@@ -194,6 +199,7 @@ def N4(options):
 
 def preprocess_scan(current_folder, options):
     """
+    Function based on NicMSlesion
     Function to call preprocess methods.
 
     """

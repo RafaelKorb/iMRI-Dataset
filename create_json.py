@@ -767,7 +767,7 @@ DATABASE = [
 "path_T1GADO":"",
 "path_lesion":"DATABASE/Sclerosis/liubliana/patient11-15/patient12/raw/consensus_gt.nii.gz",
 },
-{ "dataset":"liubliana", "MS":"True", "sex":"F", "age":"26", "ms_type":"RR",
+{ "dataset":"liubliana", "MS":"True", "sex":"M", "age":"26", "ms_type":"RR",
 "path_T1":"DATABASE/Sclerosis/liubliana/patient11-15/patient13/raw/T1W.nii.gz",
 "path_T2":"DATABASE/Sclerosis/liubliana/patient11-15/patient13/raw/T2W.nii.gz",
 "path_FLAIR":"DATABASE/Sclerosis/liubliana/patient11-15/patient13/raw/FLAIR.nii.gz",
@@ -1285,7 +1285,7 @@ DATABASE = [
 "path_PD":"",
 "path_T1GADO":"",
 "path_lesion":"",
-},
+},	
 ],
 },
 ]
