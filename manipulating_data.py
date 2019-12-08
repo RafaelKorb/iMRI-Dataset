@@ -29,7 +29,6 @@ with open('data.json', 'r') as f:
     #Search in all values
     for i, data_dict in enumerate(full_data):
         if data_dict['MS'] == 'False':
-            #print(data_dict['path_T1'])
             healthy.append(data_dict)
         if data_dict['MS'] == 'True':
         	MS.append(data_dict)
@@ -102,13 +101,13 @@ while ms_test_size > 0:
 
 
 #Example print the path_T1 of all test elements and the size of 'test'
-for h, algo in enumerate(final_train):
-    print(algo['path_T1'])
-    size_train = h
+# for h, algo in enumerate(final_train):
+#     print(algo['path_T1'])
+#     size_train = h
 
-for h, algo in enumerate(final_test):
-    print(algo['path_T1'])
-    size_test = h
+# for h, algo in enumerate(final_test):
+#     print(algo['path_T1'])
+#     size_test = h
 
 # print(total_size)
 # print(size_test)

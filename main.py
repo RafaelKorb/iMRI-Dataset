@@ -20,17 +20,35 @@ sys.path.append(os.path.join(CURRENT_PATH, 'libs'))
 
 import json
 
+def pip_auto_install():
+    """
+    Automatically installs all requirements if pip is installed.
+    """
+    try:
+        from pip._internal import main as pip_main
+        pip_main(['install', '-r', 'requirements.txt'])
+    except ImportError:
+        print("Failed to import pip. Please ensure that pip is installed.")
+        sys.exit(-1)
+    except Exception as err:
+        print("Failed to install pip requirements: " + err.message)
+        sys.exit(-1)
 
+
+pip_auto_install()
+
+
+prin(A)
 def preprocess():
     
     options= {}
      
     #LOADs FROM NicMSLesion
-    options['niftyreg_path'] = CURRENT_PATH + '/third_s/nicMSlesions/libs/linux/niftyreg'
-    options['robex_path'] = CURRENT_PATH + '/third_s/nicMSlesions/libs/linux/ROBEX/runROBEX.sh'
+    options['niftyreg_path'] = CURRENT_PATH + '/third-party-libs/nicMSlesions/libs/linux/niftyreg'
+    options['robex_path'] = CURRENT_PATH + '/third-party-libs/nicMSlesions/libs/linux/ROBEX/runROBEX.sh'
     
     #LOADs FROM MNI
-    options['MNI_Template'] = CURRENT_PATH + '/third_s/MNI_Template/icbm_avg_152_t1_tal_lin.nii.gz'
+    options['MNI_Template'] = CURRENT_PATH + '/third-party-libs/MNI_Template/icbm_avg_152_t1_tal_lin.nii.gz'
     
     #Original from NicMSLesion
     options['denoise_iter'] = 3

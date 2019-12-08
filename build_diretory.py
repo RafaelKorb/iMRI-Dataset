@@ -1,4 +1,4 @@
-import wget
+#import wget
 import os , sys
 import json
 
