@@ -12,19 +12,22 @@ Datasets Images
 The offer json take in count 5 public data images:
 
 -----------------------------------------
-SCLEROSIS: 113 images
+SCLEROSIS: 109 images
 
 --------------------------------------------------------------------------------------------------------
 *ISBI 2015 (Longitudinal multiple sclerosis lesion segmentation challenge)
 
-Training: 5 patients
+21 images
 
+Training: 5 patients
 Test: 14 patients
 
 ---------------------------------------------------------------
 *ljubljana (Laboratory of Imaging Technologies)
 
-Whitout original separation (put on training): 30 patients
+30 images
+
+Whitout original separation (have lesion masks): 30 patients
 
 Features:
 
@@ -37,13 +40,17 @@ Features:
 ---------------------------------------------------------------
 *MICCAI 2008 (International Conference on Medical Imaging and Computer Assisted Intervention - MS Lesion Segmentation Challenge)
 
+51 imagens
+
 Training: 20 patients
 
-Test: 29 patients
+Test: 25 patients
 
 
 ---------------------------------------------------------------
 *MICCAI 2016 (International Conference on Medical Imaging and Computer Assisted Intervention - MS Lesion Segmentation Challenge)
+
+15 images
 
 Only training: 15 patients
 
@@ -54,23 +61,27 @@ Features:
 "sex" (7 Male -- 8 Female)
 
 -----------------------------------------
-HEALTHY: 45
+HEALTHY: 21
 
 -----------------------------------------
 *KIRBY (Multi-Modal MRI Reproducibility Resource)
 
-Puting on training: 45 patients
+45 images
+
+Puting on training: 21 patients
 
 Features:
 
 "age"
 
-"sex" (22 Male -- 23 Female)
+"sex" (10 Male -- 11 Female)
 
 
 ---------------------------------------------------------------
 *OASIS-3 (Open Access Series of Imaging Studies)
 
+
+In soon
 
 Instructions to Download
 ---------------------------------------------------------------------------------------------
