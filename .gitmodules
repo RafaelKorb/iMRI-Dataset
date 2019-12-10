@@ -1,0 +1,3 @@
+[submodule "third-party-libs/nicMSlesion"]
+	path = third-party-libs/nicMSlesion
+	url = https://github.com/sergivalverde/nicMSlesions
