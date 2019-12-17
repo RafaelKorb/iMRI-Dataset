@@ -255,7 +255,7 @@ Manipuling information from json to work whit the preprocessing images.
 
 Build "our_json", whit the division test/training (75%-25%).
 
-*"our_json" is build whitout using test of original data-sets in our train.
+*"our_json" is build whitout using train of original data-sets in our test.
 
 The divison in test/train considerate 50-50 healthy and MS patients.
 
